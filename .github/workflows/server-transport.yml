@@ -1,0 +1,32 @@
+name: Check RetroMods server transport
+on:
+  pull_request:
+    paths: ['.github/workflows/server-transport.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check bootstrap listener without game credentials
+        shell: python
+        run: |
+          import socket, ssl
+          host, port = 'mario35.retromods.co.uk', 20000
+          try:
+              with socket.create_connection((host, port), timeout=8) as sock:
+                  with ssl.create_default_context().wrap_socket(sock, server_hostname=host) as stream:
+                      print('TLS with valid certificate:', stream.version())
+          except (OSError, ssl.SSLError) as error:
+              print('TLS check failed:', type(error).__name__, str(error))
+          try:
+              with socket.create_connection((host, port), timeout=8) as sock:
+                  request = ('GET / HTTP/1.1\r\nHost: ' + host + ':' + str(port) +
+                      '\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n'
+                      'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n'
+                      'Sec-WebSocket-Version: 13\r\n\r\n')
+                  sock.sendall(request.encode('ascii'))
+                  print('Plain WebSocket response headers:', sock.recv(2048).split(b'\r\n\r\n')[0].decode('ascii', 'replace'))
+          except OSError as error:
+              print('Plain WebSocket check failed:', type(error).__name__, str(error))
