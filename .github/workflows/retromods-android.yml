@@ -15,6 +15,7 @@ jobs:
           set -euo pipefail
           git clone --no-checkout https://git.ryujinx.app/projects/Kenji-NX upstream
           git -C upstream checkout 53d32a761e61dc8e9b5c0744199a890fc8d934d5
+          git -C upstream submodule update --init src/KenjinxAndroid/app/src/main/cpp/libraries/openal
           cp -a android/src/. upstream/src/
           git -C upstream diff --check
       - uses: actions/setup-dotnet@v4

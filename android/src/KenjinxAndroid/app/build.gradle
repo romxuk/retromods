@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = 'org.kenjinx.android'
     compileSdk 36
+    ndkVersion '29.0.14206865'
 
     defaultConfig {
         applicationId "uk.co.retromods.kenjinx"

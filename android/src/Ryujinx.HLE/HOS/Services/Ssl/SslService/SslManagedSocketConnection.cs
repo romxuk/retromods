@@ -1,3 +1,4 @@
+using Ryujinx.Common;
 using Ryujinx.HLE.HOS.Services.Sockets.Bsd;
 using Ryujinx.HLE.HOS.Services.Sockets.Bsd.Impl;
 using Ryujinx.HLE.HOS.Services.Sockets.Bsd.Proxy;
@@ -13,6 +14,23 @@ namespace Ryujinx.HLE.HOS.Services.Ssl.SslService
 {
     class SslManagedSocketConnection : ISslConnectionBase
     {
+        static SslManagedSocketConnection()
+        {
+            // The packaged OpenSSL defaults to its build machine's certificate directory.
+            // Use Android's trusted roots while retaining normal certificate validation.
+            if (PlatformInfo.IsBionic && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SSL_CERT_DIR")))
+            {
+                foreach (string directory in new[] { "/apex/com.android.conscrypt/cacerts", "/system/etc/security/cacerts" })
+                {
+                    if (Directory.Exists(directory))
+                    {
+                        Environment.SetEnvironmentVariable("SSL_CERT_DIR", directory);
+                        break;
+                    }
+                }
+            }
+        }
+
         public int SocketFd { get; }
 
         public ISocket Socket { get; }
