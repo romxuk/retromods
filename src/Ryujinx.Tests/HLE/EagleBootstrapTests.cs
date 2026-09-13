@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Ryujinx.Common.Configuration;
 using Ryujinx.HLE.HOS.Services.Sockets;
 using System.Net;
 
@@ -7,6 +8,22 @@ namespace Ryujinx.Tests.HLE
     public class EagleBootstrapTests
     {
         private const ulong Mario35 = 0x0100277011F1A000;
+
+        [TestCase(0x0100277011F1A000UL)]
+        [TestCase(0x010040600C5CE000UL)]
+        [TestCase(0x0100AD9012510000UL)]
+        public void SupportedGamesEnableInternetEvenWhenConfigurationDisablesIt(ulong titleId)
+        {
+            Assert.That(RetroModsNetworkPolicy.EffectiveGuestInternet(false, titleId), Is.True);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void OtherGamesRetainTheirInternetSetting(bool configured)
+        {
+            Assert.That(RetroModsNetworkPolicy.EffectiveGuestInternet(configured, 0), Is.EqualTo(configured));
+            Assert.That(RetroModsNetworkPolicy.EffectiveGuestInternet(configured, 0x0100000000010000), Is.EqualTo(configured));
+        }
 
         [Test]
         public void ServiceRequestsWithoutAnApplicationPidUseTheActiveGame()

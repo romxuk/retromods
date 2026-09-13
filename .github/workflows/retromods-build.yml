@@ -30,10 +30,10 @@ jobs:
           global-json-file: upstream/global.json
       - name: Test Eagle routing
         working-directory: upstream
-        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter FullyQualifiedName~EagleBootstrapTests -p:ExtraDefineConstants=DISABLE_UPDATER
+        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests' -p:ExtraDefineConstants=DISABLE_UPDATER
       - name: Publish standalone emulator
         working-directory: upstream
-        run: dotnet publish src/Ryujinx/Ryujinx.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -o ../publish -p:Version=1.0.1-retromods -p:ExtraDefineConstants=DISABLE_UPDATER
+        run: dotnet publish src/Ryujinx/Ryujinx.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -o ../publish -p:Version=1.0.2-retromods -p:ExtraDefineConstants=DISABLE_UPDATER
       - name: Package emulator
         shell: bash
         run: |
