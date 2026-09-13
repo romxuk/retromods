@@ -41,7 +41,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: retromods-kenjinx-android-arm64
-          path: upstream/src/KenjinxAndroid/app/build/outputs/apk/mainline/armv82/release/*.apk
+          path: upstream/src/KenjinxAndroid/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
       - name: Package corresponding source
         if: always()
