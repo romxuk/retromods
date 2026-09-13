@@ -12,6 +12,21 @@ namespace Ryujinx.HLE.HOS.Services.Sockets
         // TEST-NET address used only inside the guest. Never connect to this address on the host.
         public static readonly IPAddress GuestAddress = IPAddress.Parse("192.0.2.35");
 
+        public static ulong GetApplicationTitleId(ServiceCtx context)
+        {
+            // ServiceCtx.Process is the emulated service, not its caller (ServerBase).
+            // Prefer an explicit application PID; legacy requests can omit it.
+            ulong? callerTitleId = context.Device.Processes.TryGetProcess(context.ClientProcessId, out var process)
+                ? process.ProgramId
+                : null;
+            return SelectApplicationTitleId(callerTitleId, context.Device.Processes.ActiveApplication?.ProgramId);
+        }
+
+        internal static ulong SelectApplicationTitleId(ulong? callerTitleId, ulong? activeTitleId)
+        {
+            return callerTitleId ?? activeTitleId ?? 0;
+        }
+
         public static string GetBootstrapHost(ulong titleId)
         {
             return titleId switch

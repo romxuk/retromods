@@ -33,7 +33,7 @@ jobs:
         run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter FullyQualifiedName~EagleBootstrapTests -p:ExtraDefineConstants=DISABLE_UPDATER
       - name: Publish standalone emulator
         working-directory: upstream
-        run: dotnet publish src/Ryujinx/Ryujinx.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -o ../publish -p:Version=1.0.0-retromods -p:ExtraDefineConstants=DISABLE_UPDATER
+        run: dotnet publish src/Ryujinx/Ryujinx.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -o ../publish -p:Version=1.0.1-retromods -p:ExtraDefineConstants=DISABLE_UPDATER
       - name: Package emulator
         shell: bash
         run: |
@@ -45,7 +45,7 @@ jobs:
           if-no-files-found: error
       - name: Package corresponding source
         if: matrix.runtime == 'linux-x64'
-        run: tar --exclude=.git -czf retromods-source.tar.gz -C upstream .
+        run: tar --exclude=.git --exclude=bin --exclude=obj -czf retromods-source.tar.gz -C upstream .
       - uses: actions/upload-artifact@v4
         if: matrix.runtime == 'linux-x64'
         with:

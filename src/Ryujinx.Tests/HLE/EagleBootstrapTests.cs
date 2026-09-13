@@ -8,6 +8,23 @@ namespace Ryujinx.Tests.HLE
     {
         private const ulong Mario35 = 0x0100277011F1A000;
 
+        [Test]
+        public void ServiceRequestsWithoutAnApplicationPidUseTheActiveGame()
+        {
+            ulong titleId = EagleBootstrap.SelectApplicationTitleId(null, Mario35);
+            Assert.That(EagleBootstrap.Matches(titleId, "g21f12900-lp1.s.n.srv.nintendo.net"), Is.True);
+            Assert.That(EagleBootstrap.IsBootstrapEndpoint(titleId,
+                new IPEndPoint(EagleBootstrap.GuestAddress, 443)), Is.True);
+        }
+
+        [Test]
+        public void KnownUnrelatedCallerDoesNotInheritActiveGameRouting()
+        {
+            ulong titleId = EagleBootstrap.SelectApplicationTitleId(0x0100000000010000, Mario35);
+            Assert.That(EagleBootstrap.Matches(titleId, "g21f12900-lp1.s.n.srv.nintendo.net"), Is.False);
+            Assert.That(EagleBootstrap.SelectApplicationTitleId(null, null), Is.Zero);
+        }
+
         [TestCase(0x0100277011F1A000UL, "g21f12900-lp1.s.n.srv.nintendo.net")]
         [TestCase(0x010040600C5CE000UL, "g23bda200-lp1.s.n.srv.nintendo.net")]
         [TestCase(0x0100AD9012510000UL, "g2e471600-lp1.s.n.srv.nintendo.net")]

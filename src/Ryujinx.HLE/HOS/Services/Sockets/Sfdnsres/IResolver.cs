@@ -331,7 +331,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets.Sfdnsres
 
                 string targetHost = host;
 
-                if (EagleBootstrap.Matches(context.Process.TitleId, host))
+                if (EagleBootstrap.Matches(EagleBootstrap.GetApplicationTitleId(context), host))
                 {
                     hostEntry = EagleBootstrap.CreateHostEntry(host);
                     Logger.Info?.Print(LogClass.ServiceSfdnsres, $"Eagle bootstrap: {host} -> {EagleBootstrap.ServerHost}:{EagleBootstrap.ServerPort}");
@@ -562,7 +562,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets.Sfdnsres
 
                 string targetHost = host;
 
-                if (EagleBootstrap.Matches(context.Process.TitleId, host))
+                if (EagleBootstrap.Matches(EagleBootstrap.GetApplicationTitleId(context), host))
                 {
                     hostEntry = EagleBootstrap.CreateHostEntry(host);
                     Logger.Info?.Print(LogClass.ServiceSfdnsres, $"Eagle bootstrap: {host} -> {EagleBootstrap.ServerHost}:{EagleBootstrap.ServerPort}");

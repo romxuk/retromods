@@ -713,7 +713,7 @@ namespace Ryujinx.HLE.HOS.Services.Sockets.Bsd
             {
                 IPEndPoint endPoint = context.Memory.Read<BsdSockAddr>(bufferPosition).ToIPEndPoint();
 
-                if (EagleBootstrap.IsBootstrapEndpoint(context.Process.TitleId, endPoint))
+                if (EagleBootstrap.IsBootstrapEndpoint(EagleBootstrap.GetApplicationTitleId(context), endPoint))
                 {
                     if (!context.Device.Configuration.EnableInternetAccess)
                     {
