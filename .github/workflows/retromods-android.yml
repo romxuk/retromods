@@ -22,14 +22,14 @@ jobs:
           global-json-file: upstream/global.json
       - name: Test Eagle routing and BCAT
         working-directory: upstream
-        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests'
+        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests|FullyQualifiedName~RetroModsRomFsTests'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
       - name: Install Android toolchain
-        run: sdkmanager 'platforms;android-37' 'build-tools;37.0.0' 'ndk;29.0.14206865' 'cmake;4.1.2'
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;29.0.14206865' 'cmake;3.31.6'
       - name: Compile APK and native emulator
         working-directory: upstream/src/KenjinxAndroid
         env:
