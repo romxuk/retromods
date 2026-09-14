@@ -29,7 +29,7 @@ namespace Ryujinx.Common
 
         public static string Version =>
             IsValid || !RuntimeFeature.IsDynamicCodeCompiled
-                ? PlatformInfo.IsBionic ? "Bionic_2.1.0-retromods.2" : BuildVersion
+                ? PlatformInfo.IsBionic ? "Bionic_2.1.0-retromods.3" : BuildVersion
                 : Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                     ?.InformationalVersion;
     }

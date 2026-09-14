@@ -23,7 +23,7 @@ jobs:
           global-json-file: upstream/global.json
       - name: Test Eagle routing and BCAT
         working-directory: upstream
-        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests|FullyQualifiedName~RetroModsRomFsTests'
+        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests|FullyQualifiedName~RetroModsRomFsTests|FullyQualifiedName~NetworkProfileValueTests'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

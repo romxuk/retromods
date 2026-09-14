@@ -18,8 +18,8 @@ namespace Ryujinx.HLE.HOS.Services.Nifm.StaticService.Types
         {
             IsDhcpEnabled = PlatformInfo.IsBionic || OperatingSystem.IsMacOS() || interfaceProperties.DhcpServerAddresses.Count != 0;
             Address = new IpV4Address(unicastIPAddressInformation.Address);
-            IPv4Mask = new IpV4Address(unicastIPAddressInformation.IPv4Mask);
-            GatewayAddress = (interfaceProperties.GatewayAddresses.Count == 0) ? new IpV4Address() : new IpV4Address(interfaceProperties.GatewayAddresses[0].Address);
+            IPv4Mask = NetworkProfileValue.Read(() => new IpV4Address(unicastIPAddressInformation.IPv4Mask), default(IpV4Address), "IPv4 mask");
+            GatewayAddress = NetworkProfileValue.Read(() => (interfaceProperties.GatewayAddresses.Count == 0) ? new IpV4Address() : new IpV4Address(interfaceProperties.GatewayAddresses[0].Address), default(IpV4Address), "gateway");
         }
     }
 }
