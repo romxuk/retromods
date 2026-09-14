@@ -18,12 +18,16 @@ jobs:
           git -C upstream submodule update --init src/KenjinxAndroid/app/src/main/cpp/libraries/openal
           cp -a android/src/. upstream/src/
           git -C upstream diff --check
+      - name: Check server TLS certificate
+        continue-on-error: true
+        run: |
+          timeout 20 openssl s_client -connect mario35.retromods.co.uk:20000 -servername mario35.retromods.co.uk -verify_hostname mario35.retromods.co.uk -verify_return_error </dev/null
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: upstream/global.json
       - name: Test Eagle routing and BCAT
         working-directory: upstream
-        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests|FullyQualifiedName~RetroModsRomFsTests|FullyQualifiedName~NetworkProfileValueTests'
+        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests|FullyQualifiedName~RetroModsRomFsTests|FullyQualifiedName~NetworkProfileValueTests|FullyQualifiedName~AndroidCertificateTrustTests'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

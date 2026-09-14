@@ -1,4 +1,5 @@
 using Ryujinx.Common;
+using Ryujinx.Common.Logging;
 using Ryujinx.HLE.HOS.Services.Sockets.Bsd;
 using Ryujinx.HLE.HOS.Services.Sockets.Bsd.Impl;
 using Ryujinx.HLE.HOS.Services.Sockets.Bsd.Proxy;
@@ -14,23 +15,6 @@ namespace Ryujinx.HLE.HOS.Services.Ssl.SslService
 {
     class SslManagedSocketConnection : ISslConnectionBase
     {
-        static SslManagedSocketConnection()
-        {
-            // The packaged OpenSSL defaults to its build machine's certificate directory.
-            // Use Android's trusted roots while retaining normal certificate validation.
-            if (PlatformInfo.IsBionic && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SSL_CERT_DIR")))
-            {
-                foreach (string directory in new[] { "/apex/com.android.conscrypt/cacerts", "/system/etc/security/cacerts" })
-                {
-                    if (Directory.Exists(directory))
-                    {
-                        Environment.SetEnvironmentVariable("SSL_CERT_DIR", directory);
-                        break;
-                    }
-                }
-            }
-        }
-
         public int SocketFd { get; }
 
         public ISocket Socket { get; }
@@ -135,12 +119,41 @@ namespace Ryujinx.HLE.HOS.Services.Ssl.SslService
         public ResultCode Handshake(string hostName)
         {
             StartSslOperation();
-            _stream = new SslStream(new NetworkStream(((DefaultSocket)((ManagedSocket)Socket).Socket).BaseSocket, false), false, null, null);
             hostName = ((ManagedSocket)Socket).RedirectedTlsHostName ?? RetrieveHostName(hostName);
-            _stream.AuthenticateAsClient(hostName, null, TranslateSslVersion(_sslVersion), false);
-            EndSslOperation();
 
-            return ResultCode.Success;
+            try
+            {
+                Logger.Info?.Print(LogClass.ServiceSsl, $"TLS handshake: effective host={hostName}");
+                _stream = new SslStream(new NetworkStream(((DefaultSocket)((ManagedSocket)Socket).Socket).BaseSocket, false), false);
+                var options = new SslClientAuthenticationOptions
+                {
+                    TargetHost = hostName,
+                    EnabledSslProtocols = TranslateSslVersion(_sslVersion),
+                };
+
+                if (PlatformInfo.IsBionic)
+                {
+                    options.CertificateChainPolicy = AndroidCertificateTrust.CreatePolicy();
+                }
+
+                _stream.AuthenticateAsClient(options);
+                Logger.Info?.Print(LogClass.ServiceSsl, $"TLS handshake succeeded: host={hostName}");
+                return ResultCode.Success;
+            }
+            catch (AuthenticationException exception)
+            {
+                Logger.Error?.Print(LogClass.ServiceSsl, $"TLS authentication failed for {hostName}: {exception.Message}");
+                return ResultCode.ConnectionAbort;
+            }
+            catch (IOException exception)
+            {
+                Logger.Error?.Print(LogClass.ServiceSsl, $"TLS connection failed for {hostName}: {exception.Message}");
+                return ResultCode.ConnectionAbort;
+            }
+            finally
+            {
+                EndSslOperation();
+            }
         }
 
         public ResultCode Peek(out int peekCount, Memory<byte> buffer)
