@@ -1,0 +1,58 @@
+name: RetroMods Android
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble pinned Android source
+        run: |
+          set -euo pipefail
+          git clone --no-checkout https://git.ryujinx.app/projects/Kenji-NX upstream
+          git -C upstream checkout 53d32a761e61dc8e9b5c0744199a890fc8d934d5
+          git -C upstream submodule update --init src/KenjinxAndroid/app/src/main/cpp/libraries/openal
+          cp -a android/src/. upstream/src/
+          git -C upstream diff --check
+      - name: Check server TLS certificate
+        continue-on-error: true
+        run: |
+          timeout 20 openssl s_client -connect mario35.retromods.co.uk:20000 -servername mario35.retromods.co.uk -verify_hostname mario35.retromods.co.uk -verify_return_error </dev/null
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: upstream/global.json
+      - name: Test Eagle routing and BCAT
+        working-directory: upstream
+        run: dotnet test src/Ryujinx.Tests/Ryujinx.Tests.csproj -c Release --filter 'FullyQualifiedName~EagleBootstrapTests|FullyQualifiedName~BcatCompatibilityTests|FullyQualifiedName~RetroModsRomFsTests|FullyQualifiedName~NetworkProfileValueTests|FullyQualifiedName~AndroidCertificateTrustTests'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android toolchain
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;29.0.14206865' 'cmake;3.31.6'
+      - name: Compile APK and native emulator
+        working-directory: upstream/src/KenjinxAndroid
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/29.0.14206865
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleMainlineArmv82Release --stacktrace -Porg.kenjinx.llvm.toolchain.path="$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: retromods-kenjinx-android-arm64
+          path: upstream/src/KenjinxAndroid/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+      - name: Package corresponding source
+        if: always()
+        run: tar --exclude=.git --exclude=bin --exclude=obj --exclude=build --exclude=.gradle -czf retromods-kenjinx-source.tar.gz -C upstream .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: retromods-kenjinx-source
+          path: retromods-kenjinx-source.tar.gz
+          if-no-files-found: error
